@@ -224,3 +224,43 @@ resource "aws_security_group" "bastion_allow" {
     Name ="bastion_allow"
   }
 }
+# Creating Bastion instance
+resource "aws_instance" "bastion" {
+  ami           = "ami-09a7bbd08886aafdf"
+  instance_type = "t2.micro"
+  key_name = "wordpress_key"
+  vpc_security_group_ids =[aws_security_group.bastion.id]
+  subnet_id = aws_subnet.public.id
+ 
+  tags = {
+    Name = "bastion_os"
+  }
+}
+# Creating wordpress instance
+resource "aws_instance" "wordpress" {
+ depends_on = [   aws_subnet.public,
+                  aws_security_group.wordpress-sg, ]
+  ami           = "ami-02b9afddbf1c3b2e5"
+  instance_type = "t2.micro"
+  key_name = "wordpress_key"
+  vpc_security_group_ids = [aws_security_group.wordpress-sg.id]
+  subnet_id = aws_subnet.public.id
+ tags = {
+    Name = "WordPress"
+  }
+}
+#Creating Mysql instance
+resource "aws_instance" "mysql" {
+depends_on = [    aws_subnet.private,
+                  aws_security_group.mysql-sg, ]
+  ami           = "ami-0d8b282f6227e8ffb"
+  instance_type = "t2.micro"
+  key_name = "wordpress_key"
+  vpc_security_group_ids = [aws_security_group.mysql-sg.id,
+                            aws_security_group.bastion_allow.id      
+    ]
+  subnet_id = aws_subnet.private.id
+ tags = {
+    Name = "Mysql"
+  }
+}
